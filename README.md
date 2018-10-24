@@ -1,0 +1,1 @@
+# soft-delete-options-in-django
