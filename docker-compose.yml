@@ -24,14 +24,7 @@ services:
 
   db:
     image: postgres:9.6
-    volumes:
-      - pgdata:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=blog-user
       - POSTGRES_PASSWORD=test@123
       - POSTGRES_DB=blog
-
-
-volumes:
-  pgdata:
-    driver: local
