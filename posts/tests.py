@@ -3,7 +3,7 @@ from django.test import TestCase
 from posts.models import Post, Comment
 
 
-class PostsTest(TestCase):
+class PostsTestWithParanoia(TestCase):
     def setUp(self):
         post1 = Post.objects.create(
             title="post 1 title",
