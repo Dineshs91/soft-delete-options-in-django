@@ -42,9 +42,12 @@ class PostsTestWithParanoia(TestCase):
         try:
             get_post1 = Post.objects.get(id=post1.id)
         except Post.DoesNotExist:
-            get_post1=None
+            get_post1 = None
 
         self.assertIsNone(get_post1)
+
+        # Post count should be 0.
+        self.assertEqual(Post.objects.count(), 1)
 
         # Check if the deleted post can be fetched by original_objects.
         get_post1 = Post.original_objects.get(id=post1.id)
@@ -59,6 +62,9 @@ class PostsTestWithParanoia(TestCase):
         # We should be able to fetch the comment directly.
         comment1_for_post1 = Comment.objects.get(text="comment1 for post1")
         self.assertIsNotNone(comment1_for_post1)
+
+        # Get the comment from related_name.
+        self.assertEqual(post1.post_comments.count(), 1)
 
     def test_comment_delete(self):
         comment1_for_post1 = Comment.objects.get(text="comment1 for post1")

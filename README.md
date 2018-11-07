@@ -4,6 +4,16 @@ In this repository, I try and explore different ways of doing soft delete in dja
 or from the models directly.
 
 1. Paranoia model
+2. 
+
+For all the strategies we will see how the following will work
+
+1. Get
+2. Delete
+3. Queryset get and delete.
+4. Relations
+
+## Paranoia model
 
 I found this code from [sentry](http://github.com/getsentry/sentry)
 
@@ -86,5 +96,36 @@ Post.original_objects.all()
 # Returns soft deleted objects as well, along with the undeleted ones.
 ```
 
+This strategy works very well for the first 3 criterion. But how does this work across relations ?
+
+Lets add another model to the above example
+
+```
+post = Post(title="soft delete strategies", content="Trying out various soft delete strategies")
+
+class Comment(ParanoidModel):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
+    message = models.TextField()
+    
+comment = Comment(post, message="Well written blog post")
+# post is the object we created earlier.
+
+post.delete()
+# Soft delete the post.
+
+print(Comment.objects.count())
+# The comment of the post still exists.
+```
+
+From the above example it is clear that the soft delete is not propagated to the relations. Deleting
+a post doesn't delete the comments related to it. They still can be accessed independently, but cannot
+be accessed from the post, since it is soft deleted.
+
+So summarising this approach, everything works well, other than the relations handling.
+This implementation is good enough, if the relation models are not queried directly. For example, once
+we delete the post, the comments related to the post become relevant. Comments don't mean a thing
+without its parent `post`
+
 **Note:** I've made some changes to the code found from sentry, like changing the field name `deleted_on`
+ 
  
