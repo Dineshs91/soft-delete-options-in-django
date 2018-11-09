@@ -7,7 +7,7 @@ The reason I am trying out all these options is to make sure that the consequenc
 approach are well known before making a choice.
 
 1. Paranoia model
-2. 
+2. [Django safe delete](https://github.com/makinacorpus/django-safedelete)
 
 For all the strategies we will see how the following will work
 
@@ -78,7 +78,7 @@ class ParanoidModel(models.Model):
 ```
 
 We also add a custom manager. It helps us in 2 ways. We can access the original manager, which will
-return the soft deleted objects and second, queries that return queryset will filter the softdeleted
+return the soft deleted objects and second, queries that return queryset will filter the soft deleted
 objects without the need for us to specify it in each query.
 
 Now both of the following queries work
@@ -94,6 +94,12 @@ post.delete()
 
 Post.objects.all().delete()
 # Will also soft delete all the posts.
+
+Post.objects.get()
+# Will not return any post and will raise an exception.
+
+Post.original_objects.get()
+# Will return the soft deleted post.
 
 Post.original_objects.all()
 # Returns soft deleted objects as well, along with the undeleted ones.
@@ -121,14 +127,15 @@ print(Comment.objects.count())
 ```
 
 From the above example it is clear that the soft delete is not propagated to the relations. Deleting
-a post doesn't delete the comments related to it. They still can be accessed independently, but cannot
-be accessed from the post, since it is soft deleted.
+a post does not delete the comments related to it. They still can be accessed independently, but cannot
+be accessed from the post, since the post is soft deleted.
 
 So summarising this approach, everything works well, other than the relations handling.
 This implementation is good enough, if the relation models are not queried directly. For example, once
 we delete the post, the comments related to the post become relevant. Comments don't mean a thing
-without its parent `post`
+without its parent `post`.
 
 **Note:** I've made some changes to the code found from sentry, like changing the field name `deleted_on`
  
+ ## Django safe delete
  
