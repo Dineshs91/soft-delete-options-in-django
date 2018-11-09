@@ -26,6 +26,12 @@ class PostsTestWithParanoia(TestCase):
         )
 
     def test_paranoia_post_delete(self):
+        """
+        When a resource is soft deleted, test if it's accessible by sql query (Proof that it still exists in the db)
+        The deleted resource should not be accessible by `get` as well.
+
+        It should be accessible by `original_objects` manager.
+        """
         post1 = Post.objects.get(title="post 1 title")
 
         post1.delete()
@@ -55,6 +61,9 @@ class PostsTestWithParanoia(TestCase):
         self.assertIsNotNone(get_post1.deleted_on)
 
     def test_get_comment_after_post_delete(self):
+        """
+        Should be able to retrieve the comment of a soft deleted post.
+        """
         post1 = Post.objects.get(title="post 1 title")
 
         post1.delete()
@@ -67,6 +76,9 @@ class PostsTestWithParanoia(TestCase):
         self.assertEqual(post1.post_comments.count(), 1)
 
     def test_comment_delete(self):
+        """
+        Soft delete comment.
+        """
         comment1_for_post1 = Comment.objects.get(text="comment1 for post1")
         comment1_for_post1.delete()
 
