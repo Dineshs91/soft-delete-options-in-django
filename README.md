@@ -3,6 +3,9 @@
 In this repository, I try and explore different ways of doing soft delete in django, either using a library
 or from the models directly.
 
+The reason I am trying out all these options is to make sure that the consequences of any framework or
+approach are well known before making a choice.
+
 1. Paranoia model
 2. 
 
