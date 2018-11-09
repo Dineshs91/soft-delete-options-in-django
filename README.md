@@ -135,6 +135,9 @@ This implementation is good enough, if the relation models are not queried direc
 we delete the post, the comments related to the post become relevant. Comments don't mean a thing
 without its parent `post`.
 
+The other thing to note here is, if we decide to restore a soft deleted object, we don't have to worry about its
+relations, since they have not been deleted (Neither soft/hard).
+
 **Note:** I've made some changes to the code found from sentry, like changing the field name `deleted_on`
  
  ## Django safe delete
