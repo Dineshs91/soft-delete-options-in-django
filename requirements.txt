@@ -1,5 +1,6 @@
 Django==2.1.2
 django-extensions==1.9.9
+django-safedelete==0.5.1
 eventlet==0.21.0
 gunicorn==19.7.1
 psycopg2==2.7.3.2

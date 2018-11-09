@@ -142,3 +142,81 @@ relations, since they have not been deleted (Neither soft/hard).
  
  ## Django safe delete
  
+ This framework provides lot of options for soft deleting. They have the following policies
+ 
+ 1. HARD_DELETE
+ 2. SOFT_DELETE
+ 3. SOFT_DELETE_CASCADE
+ 4. HARD_DELETE_NOCASCADE
+ 5. NO_DELETE
+ 
+ Policies apply to how the delete is handled and stored in the database.
+ 
+ They have the following visibility options
+ 
+ 1. DELETED_INVISIBLE (Default)
+ 2. DELETED_VISIBLE_BY_FIELD
+ 
+ 
+ Visibility options apply for retrieving data.
+ 
+ ### HARD_DELETE
+ This is similar to the django default default behaviour, with some more options. I am not going to discuss them here.
+ You can checkout their documentation [here](https://django-safedelete.readthedocs.io/en/latest/index.html).
+ 
+ ### SOFT_DELETE
+ 
+ This policy just soft deletes the object being deleted. The related objects remain untouched.
+ 
+ Lets start by creating some models
+ 
+```
+from django.db import models
+
+from safedelete.models import SafeDeleteModel
+from safedelete.models import SOFT_DELETE
+
+
+class Article(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE
+
+    title = models.CharField(max_length=100)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class Comment(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE
+
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='article_comments')
+    text = models.TextField()
+```
+
+Lets try out deleting an article
+
+```
+# First we create an article
+article = Article.objects.create(
+    title="article 1 title",
+    content="article 1 content"
+)
+
+article.delete()
+# Will soft delete the article.
+
+Article.objects.all().delete()
+# Will soft delete all the articles.
+
+Article.objects.all_with_deleted()
+# Will fetch all the objects including the deleting one's
+
+Article.original_objects.all()
+# Will fetch all the objects including the deleting one's using our custom manager.
+```
+
+This strategy is almost similar to the paranoia design we discussed above.
+
+### SOFT_DELETE_CASCADE
+
+This is almost similar to the above, except that it soft delete's the related objects as well.

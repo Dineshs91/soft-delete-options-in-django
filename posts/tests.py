@@ -52,7 +52,7 @@ class PostsTestWithParanoia(TestCase):
 
         self.assertIsNone(get_post1)
 
-        # Post count should be 0.
+        # Post count should be 1.
         self.assertEqual(Post.objects.count(), 1)
 
         # Check if the deleted post can be fetched by original_objects.
