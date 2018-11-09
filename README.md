@@ -161,6 +161,7 @@ relations, since they have not been deleted (Neither soft/hard).
  Visibility options apply for retrieving data.
  
  ### HARD_DELETE
+ 
  This is similar to the django default default behaviour, with some more options. I am not going to discuss them here.
  You can checkout their documentation [here](https://django-safedelete.readthedocs.io/en/latest/index.html).
  
@@ -215,8 +216,75 @@ Article.original_objects.all()
 # Will fetch all the objects including the deleting one's using our custom manager.
 ```
 
+We can restore the soft deleted object
+
+```
+article.undelete()
+```
+
 This strategy is almost similar to the paranoia design we discussed above.
 
 ### SOFT_DELETE_CASCADE
 
 This is almost similar to the above, except that it soft delete's the related objects as well.
+
+Let's start by creating some models
+
+```
+from django.db import models
+
+from safedelete.models import SafeDeleteModel
+from safedelete.models import SOFT_DELETE_CASCADE
+
+class User(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
+
+    full_name = models.CharField(max_length=100)
+    email = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class UserLogin(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_logins")
+    login_time = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+```
+
+Lets try deleting the user
+
+```
+user = User.objects.create(
+    full_name="sam kin",
+    email="sam@gm.com"
+)
+UserLogin.objects.create(
+    user=user
+)
+UserLogin.objects.create(
+    user=user
+)
+
+user.delete()
+
+User.objects.count()
+# User count will be 0
+
+UserLogin.objects.count()
+# UserLogin count will also be 0. (Since this is cascade soft delete)
+# Both user and user login are soft deleted.
+```
+
+Here, restoring user will also restore all its login's.
+
+```
+user.undelete()
+```
+
+### NO_DELETE
+
+This policy prevents any sort of delete soft/hard. The only way to delete is through raw sql query.
+This can be useful in places where any kind of delete is not allowed from the application.
