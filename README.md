@@ -162,7 +162,7 @@ relations, since they have not been deleted (Neither soft/hard).
  
  ### HARD_DELETE
  
- This is similar to the django default default behaviour, with some more options. I am not going to discuss them here.
+ This is similar to the django default behaviour, with some more options. I am not going to discuss them here.
  You can checkout their documentation [here](https://django-safedelete.readthedocs.io/en/latest/index.html).
  
  ### SOFT_DELETE
@@ -278,7 +278,7 @@ UserLogin.objects.count()
 # Both user and user login are soft deleted.
 ```
 
-Here, restoring user will also restore all its login's.
+Here, restoring user will also restore all its login's. So all the related objects are also restored.
 
 ```
 user.undelete()
