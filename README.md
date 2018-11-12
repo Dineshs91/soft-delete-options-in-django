@@ -132,7 +132,7 @@ be accessed from the post, since the post is soft deleted.
 
 So summarising this approach, everything works well, other than the relations handling.
 This implementation is good enough, if the relation models are not queried directly. For example, once
-we delete the post, the comments related to the post become relevant. Comments don't mean a thing
+we delete the post, the comments related to the post become irrelevant. Comments don't mean a thing
 without its parent `post`.
 
 The other thing to note here is, if we decide to restore a soft deleted object, we don't have to worry about its
