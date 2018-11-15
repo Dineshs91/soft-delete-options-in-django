@@ -6,6 +6,8 @@ or from the models directly.
 The reason I am trying out all these options is to make sure that the consequences of any framework or
 approach are well known before making a choice.
 
+**Approaches**
+
 1. Paranoia model
 2. [Django safe delete](https://github.com/makinacorpus/django-safedelete)
 
@@ -37,9 +39,9 @@ class ParanoidModel(models.Model):
 ```
 
 Any model which needs safe delete can inherit this base model. This works well only when an individual
-object is deleted. But would fail, when delete is issued on a queryset.
+object has to be deleted. But would fail, when delete is issued on a queryset.
 
-So we add a custom queryset.
+So we add a custom queryset `ParanoidQuerySet`.
 
 ```
 class ParanoidQuerySet(QuerySet):
@@ -138,6 +140,46 @@ without its parent `post`.
 The other thing to note here is, if we decide to restore a soft deleted object, we don't have to worry about its
 relations, since they have not been deleted (Neither soft/hard).
 
+If you want restore option, you can add `undelete` method to the base model `ParanoiaModel`.
+
+```
+class ParanoidModel(models.Model):
+    class Meta:
+        abstract = True
+
+    deleted_on = models.DateTimeField(null=True, blank=True)
+    objects = ParanoidManager()
+    original_objects = models.Manager()
+
+    def delete(self):
+        self.deleted_on=timezone.now()
+        self.save()
+    
+    def undelete(self):
+        self.deleted_on=None
+        self.save()
+```
+
+You can also add this to the custom queryset.
+
+```
+class ParanoidQuerySet(QuerySet):
+    """
+    Prevents objects from being hard-deleted. Instead, sets the
+    ``date_deleted``, effectively soft-deleting the object.
+    """
+
+    def delete(self):
+        for obj in self:
+            obj.deleted_on=timezone.now()
+            obj.save()
+    
+    def undelete(self):
+        for obj in self:
+            obj.deleted_on=None
+            obj.save()
+```
+
 **Note:** I've made some changes to the code found from sentry, like changing the field name `deleted_on`
  
  ## Django safe delete
@@ -157,13 +199,15 @@ relations, since they have not been deleted (Neither soft/hard).
  1. DELETED_INVISIBLE (Default)
  2. DELETED_VISIBLE_BY_FIELD
  
- 
  Visibility options apply for retrieving data.
+ 
+ I will focus only on the soft delete policies, as other options are not relevant. You can check out the documentation if you
+ are interested. [doc](https://django-safedelete.readthedocs.io/en/latest/index.html)
  
  ### HARD_DELETE
  
  This is similar to the django default behaviour, with some more options. I am not going to discuss them here.
- You can checkout their documentation [here](https://django-safedelete.readthedocs.io/en/latest/index.html).
+ You can checkout the documentation [here](https://django-safedelete.readthedocs.io/en/latest/index.html).
  
  ### SOFT_DELETE
  
@@ -209,11 +253,14 @@ article.delete()
 Article.objects.all().delete()
 # Will soft delete all the articles.
 
+Article.objects.all()
+# Will return objects which are not deleted (Either soft/hard)
+
 Article.objects.all_with_deleted()
-# Will fetch all the objects including the deleting one's
+# Will fetch all the objects including the deleted one's
 
 Article.original_objects.all()
-# Will fetch all the objects including the deleting one's using our custom manager.
+# Will fetch all the objects including the deleted one's using our custom manager.
 ```
 
 We can restore the soft deleted object
@@ -221,6 +268,9 @@ We can restore the soft deleted object
 ```
 article.undelete()
 ```
+
+In this approach, firt 3 criterion work well, but fails for relations. So soft deleting an objects, doesn't soft delete
+its relations.
 
 This strategy is almost similar to the paranoia design we discussed above.
 
@@ -284,7 +334,19 @@ Here, restoring user will also restore all its login's. So all the related objec
 user.undelete()
 ```
 
+This approach handles all our criterions.
+
 ### NO_DELETE
 
 This policy prevents any sort of delete soft/hard. The only way to delete is through raw sql query.
 This can be useful in places where any kind of delete is not allowed from the application.
+
+## Summary
+
+All the approaches fall under 2 categories
+
+1. Supports relations
+2. Doesn't support relations
+
+If you want your soft-delete's to be propogated to the relations use soft-delete-cascade. If this is not required, then you 
+can choose any of the above approaches.
